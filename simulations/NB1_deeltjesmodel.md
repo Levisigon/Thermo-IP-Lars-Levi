@@ -726,6 +726,9 @@ HTML(ani.to_jshtml())
 
 ```
 
+Ik test hier even wat
+
+
 ```{exercise}
 :label: ex-deeltjesmodel-6
 
