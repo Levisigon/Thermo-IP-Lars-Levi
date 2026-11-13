@@ -234,6 +234,9 @@ En als je wilt gaan voor een uitdaging:
 ```
 
 ```python
+import numpy as np
+import matplotlib.pyplot as plt
+
 class Deeltje:
     def __init__(self, m, v, r, R):
         self.m = m
@@ -247,7 +250,7 @@ class Deeltje:
 deeltjes_array = []
 
 for start_x in range(10):
-    deeltjes_array.append(Deeltje(m = 1.0, v = np.random.randint(-5,5,2), r = [start_x, 0.0], R =1.0))
+    deeltjes_array.append(Deeltje(m = 1.0, v = [0.0, np.random.randint(-5,5)], r = [start_x, 0.0], R =1.0))
 
 plt.figure()
 for particle in deeltjes_array:
@@ -281,6 +284,22 @@ eind = time.time()
 lengte = eind - start
 
 print("Dit kostte ", lengte, "seconde!")
+
+```
+
+```python
+start = time.time()
+
+array = np.array([])
+N = int(1e5)
+
+
+array = np.append(array,np.random.rand(N))
+
+eind = time.time()
+lengte_2 = eind - start
+
+print("Dit kostte ", lengte_2, "seconde!")
 ```
 
 Idealiter draaien we de bovenstaande code een aantal keer zodat we een goede schatting hebben van de rekentijd.
@@ -303,7 +322,8 @@ De runtime is {eval}`<naam variabele>` korter.
 ```
 
 ```python
-
+verschil = lengte-lengte_2
+print("De runtime is", verschil, "Seconde korter")
 ```
 
 ## Aan de slag met deeltjes
@@ -375,7 +395,7 @@ ax.set_xlabel("x")
 ax.set_ylabel("y")
 
 # Toon het deeltje als een rode stip
-dot, = ax.plot([], [], 'ro', markersize=10); # semicolon to suppress output
+dot, = ax.plot(particle.r[0], particle.r[1], 'ro', markersize=10); # semicolon to suppress output
 ```
 
 Bij het aanmaken van ons deeltje hebben we het deeltje een beginpositie en snelheid mee gegeven.
@@ -463,8 +483,11 @@ Controleer je eigen antwoord door de functie hierboven even te vervangen door de
 def update(frame):
     particle.update_position()
     dot.set_data([particle.r[0]], [particle.r[1]])
+    if particle.r[0] == 10:
+        
 ### YOUR CODE HERE ###
-    return dot,         
+    return dot, 
+    
 ```
 
 ```{exercise} Harde wanden
