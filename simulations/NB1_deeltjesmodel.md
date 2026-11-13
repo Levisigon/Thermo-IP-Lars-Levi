@@ -712,9 +712,11 @@ def init():
 def update(frame):
     particle.update_velocity(a)
     particle.update_position()
-    
     dot.set_data([particle.r[0]], [particle.r[1]])
-    ### YOUR CODE HERE ###
+    if particle.r[0] > 10 or particle.r[0] < -10:
+        particle.v[0] = -particle.v[0]
+    if particle.r[1] > 10 or particle.r[1] < -10:
+        particle.v[1] = -particle.v[1]
     return dot,
 
 # Create animation
@@ -737,7 +739,7 @@ Herinner wat we in Q1 hebben gedaan bij de basics van een numerieke simulatie...
 ```
 
 ```{solution} ex-deeltjesmodel-6
-Jouw antwoord hier...
+We zien dat energie hier niet behouden is, de bal komt steeds minder ver omhoog en heeft dus steeds minder potentiële energie bovenaan. Terwijl volgens het behoud van energie de bal steeds even hoog zou moeten stuiteren.
 ```
 
 Een optie om de simulatie te verbeteren is de tijdstap $\Delta t$ kleiner te maken, maar dan hebben we ook meer geduld meer nodig - het aantal berekeningen schaalt met $\frac{1}{\Delta t}$. Een tweede optie is een meer directe oplossing: We weten dat $a = \mathrm{const.}$ en daarom weten we ook de bewegingsvergelijking van het deeltje!
@@ -763,7 +765,7 @@ class ParticleClass:
 # Simulation parameters
 dt = 0.1         
 num_steps = 500  
-particle = ParticleClass(m=1.0, v=[0, 0], r=[0.0, 0.0],R=1.0)  
+particle = ParticleClass(m=1.0, v=[0, 2], r=[0.0, 2],R=1.0)  
 a = np.array([0.0, -5.0])  
 
 track_x = []
