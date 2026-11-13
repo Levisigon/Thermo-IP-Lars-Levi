@@ -24,6 +24,9 @@ Als startopdracht modelleren we twee fietsers. Doorloop de bovenstaande drie sta
 
 
 
+![Schermafbeelding 2026-11-13 163020.png](attachment:b58a1ce9-e811-4071-ae24-ab13df46d160.png)
+
+
 ## Numerieke modellen
 Om een simulatie te maken, splitsen we het volledige proces op in kleine stappen met een vaste (tijd)interval, zoals in onderstaande figuur. Elk stapje krijgt een nummer, van $0$ tot $N$. We gebruiken de letter $i$ om naar een specifieke stap te verwijzen.
 
@@ -688,7 +691,7 @@ class ParticleClass:
 # Simulation parameters
 dt = 0.1         # time step
 num_steps = 500  # number of time steps
-particle = ParticleClass(m=1.0, v=[5.0, 0.0], r=[0.0, 0.0],R=1.0)
+particle = ParticleClass(m=1.0, v=[5.0, 0.0], r=[0.0, 0.0],R=1)
 a = -9.81
 ### YOUR CODE HERE ###
 # Create the figure and axis
@@ -765,7 +768,7 @@ class ParticleClass:
 # Simulation parameters
 dt = 0.1         
 num_steps = 500  
-particle = ParticleClass(m=1.0, v=[0, 2], r=[0.0, 2],R=1.0)  
+particle = ParticleClass(m=1.0, v=[2, 0], r=[0.0, 0.0],R=1.0)  
 a = np.array([0.0, -5.0])  
 
 track_x = []
@@ -825,12 +828,14 @@ Maak de code hieronder voor twee deeltjes die bewegen in een afgesloten doos. Be
 # Simulation parameters
 dt = 0.1         # time step
 num_steps = 500  # number of time steps
-particleA = ParticleClass(m=1.0, v=[0, 0], r=[0.0, 0.0],R=1.0)  
+particleA = ParticleClass(m=1.0, v=[0, 0], r=[0.0, 0.0],R=1.0)
+particleB = ParticleClass(m=1.0, v=[5, 0], r=[0.0, 0.0],R=1.0)  
 ### YOUR CODE HERE ###
 
 track_x = []
 track_y = []
-
+track_x_B = []
+track_y_B = []
 # Create the figure and axis
 fig, ax = plt.subplots()
 ax.set_xlim(-10, 10)
@@ -839,8 +844,9 @@ ax.set_aspect('equal')
 ax.set_title("Particle Animation")
 ax.set_xlabel("x")
 ax.set_ylabel("y")
-track_line, = ax.plot([], [], 'r--', linewidth=1)  
 
+track_line, = ax.plot([], [], 'r--', linewidth=1)  
+track_line_B, = ax.plot([], [], 'b--', linewidth=1)  
 # Create the particle as a red dot
 dotA, = ax.plot([], [], 'ro', markersize=10)
 dotB, = ax.plot([], [], 'bo', markersize=10)
@@ -854,12 +860,17 @@ def init():
 def update(frame):
     particleA.update_position()
     particleA.update_velocity(a)
+    particleB.update_position()
+    particleB.update_velocity(a)
 
 ### YOUR CODE HERE ###
 
     track_x.append(particleA.r[0])
     track_y.append(particleA.r[1])
     track_line.set_data(track_x, track_y)
+    track_x_B.append(particleB.r[0])
+    track_y_B.append(particleB.r[1])
+    track_line_B.set_data(track_x_B, track_y_B)
     
     dotA.set_data([particleA.r[0]], [particleA.r[1]])
     dotB.set_data([particleB.r[0]], [particleB.r[1]])
@@ -902,7 +913,7 @@ Nu je een beetje weet hoe een numeriek model werkt, hoe je boundaries kunt opgev
 
 ```{solution} ex-deeltjes_10
 Jouw antwoord.
-```
+$r_1$ en $r_2$ moeten gelijk aan elkaar zijn willen ze botsen.
 
 ```python tags=["NB1_botsingsvoorwaarde"]
 # Define a class for a particle
@@ -918,9 +929,11 @@ class ParticleClass:
     def update_position(self):
         self.r += self.v * dt  
 
-    def collide_detection(self, other):
-        ### YOUR CODE HERE ###
-        return  dx**2+dy**2 < rr**2 
+    def collide_detector(self, other):
+        dx = abs(self.r[0] - other.r[0])
+        dy = abs(self.r[1] - other.r[1])
+        rr = self.R + other.R
+        return dx**2+dy**2 <= rr 
 ```
 
 ```python
@@ -970,8 +983,10 @@ def update(frame):
     dotB.set_data([particleB.r[0]], [particleB.r[1]])
 
     # botsing tussen de deeltjes onderling
-    if particleA.collide_detection(particleB):
-        ### YOUR CODE HERE ###
+    if particleA.collide_detector(particleB):
+        particleA.v, particleB.v = particleB.v.copy(), particleA.v.copy()
+
+       
 
 
     # botsing met de wand
@@ -1050,7 +1065,7 @@ Wat is de beperkende factor in ons script om het aantal botsingen als functie va
 ```
 
 ```{solution} ex-deeltjes-12
-Jouw antwoord
+De bewering klopt, je kan nu alleen slecht 1 simulatie per run doen. Dit is niet genoeg om een relatie te kunnen onderzoeken tussen de massaverhouding en aantal botsingen.
 ```
 
 
@@ -1076,7 +1091,7 @@ class ParticleClass:
 dt = 0.1         # time step
 num_steps = 530  # number of time steps
 m1 = 1.0
-m2 = 1.0
+m2 = 50
 
 particleA = ParticleClass(m=m1, v=[0, 0], r=[-4.0, 0.0],R=0.45)  
 particleB = ParticleClass(m=m2, v=[-1, 0], r=[-2.0, 0.0],R=0.45)  
@@ -1125,15 +1140,18 @@ def update(frame):
         vB_new = vB - 2 * mA / (mA + mB) * np.dot(vB - vA, rB - rA) / (1e-12+np.linalg.norm(rB - rA))**2 * (rB - rA)
         particleA.v = vA_new
         particleB.v = vB_new
+        counter += 1
         ### YOUR CODE HERE ###
 
 
     # wall collision detection and response
     if particleA.r[0]**2>100: # Check if particle is outside the bounds, np.abs could be used but is slower
         particleA.v[0] = -particleA.v[0]
+        counter += 1
         ### YOUR CODE HERE ###
     if particleA.r[1]**2>100: 
         particleA.v[1] = -particleA.v[1]
+        counter += 1
         ### YOUR CODE HERE ###
 
     dot.set_data([particleB.r[0]], [particleB.r[1]])
@@ -1159,8 +1177,9 @@ Pas de bovenstaande code aan zodat $m_1 = 1$ en $m_2 = 50$. Run de code en geef 
 
 
 ```python tags=["NB1_eindantwoord"]
-#num_botsingen = ...
-### YOUR CODE HERE ###
+num_botsingen = counter
+print("Het aantal botsingen is gelijk aan:", counter)
+
 ```
 
 ```{exercise}
