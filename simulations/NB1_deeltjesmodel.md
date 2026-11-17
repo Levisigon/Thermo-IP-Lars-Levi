@@ -827,8 +827,13 @@ num_steps = 500  # number of time steps
 particleA = ParticleClass(m=1.0, v=[0, 0], r=[0.0, 0.0],R=1.0)  
 ### YOUR CODE HERE ###
 
+particleB = ParticleClass(m=1.0, v=[2, 1], r=[0.0, 0.0],R=1.0) 
+
+        
 track_x = []
 track_y = []
+track_xb = []
+track_yb = []
 
 # Create the figure and axis
 fig, ax = plt.subplots()
@@ -838,7 +843,10 @@ ax.set_aspect('equal')
 ax.set_title("Particle Animation")
 ax.set_xlabel("x")
 ax.set_ylabel("y")
-track_line, = ax.plot([], [], 'r--', linewidth=1)  
+track_line, = ax.plot([], [], 'r--', linewidth=1) 
+track_line_B, = ax.plot([], [], 'b--', linewidth=1) 
+
+
 
 # Create the particle as a red dot
 dotA, = ax.plot([], [], 'ro', markersize=10)
@@ -853,12 +861,18 @@ def init():
 def update(frame):
     particleA.update_position()
     particleA.update_velocity(a)
+    particleB.update_position()
+    particleB.update_velocity(a)
 
 ### YOUR CODE HERE ###
 
     track_x.append(particleA.r[0])
     track_y.append(particleA.r[1])
     track_line.set_data(track_x, track_y)
+  
+    track_xb.append(particleB.r[0])
+    track_yb.append(particleB.r[1])
+    track_line_B.set_data(track_xb, track_yb)
     
     dotA.set_data([particleA.r[0]], [particleA.r[1]])
     dotB.set_data([particleB.r[0]], [particleB.r[1]])
@@ -919,7 +933,9 @@ class ParticleClass:
 
     def collide_detection(self, other):
         ### YOUR CODE HERE ###
-        return  dx**2+dy**2 < rr**2 
+        dx = np.abs(self.r[0] - other.r[0])
+        dy = np.abs(self.r[0] - other.r[0])
+        return  dx**2+dy**2 
 ```
 
 ```python
@@ -971,6 +987,8 @@ def update(frame):
     # botsing tussen de deeltjes onderling
     if particleA.collide_detection(particleB):
         ### YOUR CODE HERE ###
+        particleA.v = ((particleA.m-particleB.m)/(particleA.m+particleB.m))*particleA.v + 2* (particleB.m/)particleA
+     
 
 
     # botsing met de wand
