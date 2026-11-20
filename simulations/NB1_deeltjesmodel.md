@@ -913,7 +913,7 @@ Nu je een beetje weet hoe een numeriek model werkt, hoe je boundaries kunt opgev
 
 ```{solution} ex-deeltjes_10
 Jouw antwoord.
-$r_1$ en $r_2$ moeten gelijk aan elkaar zijn willen ze botsen.
+De afstand tussen r_1 en r_2 moeten kleiner zijn dan de straal van de particle en dan botsen ze.
 
 ```python tags=["NB1_botsingsvoorwaarde"]
 # Define a class for a particle
@@ -938,6 +938,19 @@ class ParticleClass:
 
 ```python
 # Simulation parameters
+class ParticleClass:
+    def __init__(self, m, v, r, R):
+        self.m = m                  # mass of the particle
+        self.v = np.array(v, dtype=float)  # velocity vector
+        self.r = np.array(r, dtype=float)  # position vector
+        self.R = R                         # radius of the particle
+
+    def update_position(self):
+        self.r += self.v * dt 
+
+    def collide_detection(self, other):
+        return np.linalg.norm(self.r - other.r) <= (self.R + other.R)
+        
 dt = 0.1         # time step
 num_steps = 200  # number of time steps
 
@@ -983,7 +996,7 @@ def update(frame):
     dotB.set_data([particleB.r[0]], [particleB.r[1]])
 
     # botsing tussen de deeltjes onderling
-    if particleA.collide_detector(particleB):
+    if particleA.collide_detection(particleB):
         particleA.v, particleB.v = particleB.v.copy(), particleA.v.copy()
 
        
