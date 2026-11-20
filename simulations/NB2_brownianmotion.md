@@ -48,7 +48,8 @@ Als model gaan we uit van een deel van het volume van een fietsband die onder ee
 ```
 
 ```{solution} ex-recap-1
-### YOUR CODE HERE ###
+We gaan uit van de ideale gaswet. pV=nRT. p = 10bar = 10x10^5 Pa. R = 8.31 J/molK. T = 293 K, kamertemperatuur. n = 1/(6.022x10^23) mol. V = nRT/p = 1/(6.022x10^23)x8.31x293/(10x10^5) = 4.04 x10^-26 m^3. Dus dit is het volume van één molecuul gemiddeld.
+Het volume van een doos met ribben van 1.6 nm = (1.6*10^-9)^3 = 4.096 *10^-27 m^3 dus het klopt inderdaad ongeveer. Dus het komt ongeveer overeen.
 ```
 
 De simulatie die we gaan maken bevat maar twee dimensies. We kunnen het oppervlak per deeltje in deze simulatie daarom kiezen als het zojuist berekende $V_\text{molecuul}^{2/3}$.
@@ -68,7 +69,15 @@ Ook deze heb je hierna nodig.
 ```
 
 ```{solution} ex-recap-2
-### YOUR CODE HERE ###
+$$
+    v^2 = \frac{fK_bT}{m}  v = \sqrt{\frac{fK_bT}{m}} = \sqrt{\frac{2\cdot 1.381\cdot 10^{-23}\cdot 293}{4.65\cdot10^{-26}}} 
+    = 4\cdot 10^2 m/s
+$$
+
+Hier maken we gebruik van stiktof voor de berekening van de massa aangezien het grootste aandeel van moleculen in de lucht stikstof is.
+
+$ m = \frac{1}{6.022\cdot10^{23}} \cdot 28.014 \cdot 10^{-3} = 4.65\cdot10^{-26} K=kg $
+
 ```
 
 ```{exercise} Radius
@@ -77,7 +86,7 @@ In de python cell hieronder staan enkele waarden gegeven. Het aantal deeltjes $N
 ```
 
 ```{solution} ex-recap-3
-### YOUR CODE HERE ###
+Dit is al gegeven dus ik weet niet wat ik hier moet vertellen.
 ```
 
 ```{exercise} DT
@@ -87,13 +96,15 @@ Bekijk de waarde van `DT`. Hoe zorgt deze waaarde ervoor dat het onwaarschijnlij
 
 Onze simulatie modelleert dus een klein systeem zonder rekening te houden met de kracht tussen de luchtmoleculen. Je zult zien dat we toch al behoorlijk wat van de processor vragen om deze berekeningen te doen. Om een meer realistische modelsimulatie te maken is daarom een serieuze uitdaging, die veel wiskunde en programmeerervaring vraagt. Op dit ogenblik wordt dit bijvoorbeeld gevraagd bij een van de eerste opdrachten van het vak 'Computational Physics' van de master Applied Physics. 
 
-```python tags=["NB2_init"] editable=true slideshow={"slide_type": ""}
+<!-- #region tags=["NB2_init"] editable=true slideshow={"slide_type": ""} -->
 BOX_SIZE_0 = 10                # Hoogte en lengte startvolume
 N = 40                         # Aantal deeltjes
 V_0 = 1                        # Startsnelheid van deeltjes
 RADIUS = 0.3                   # Straal van moleculen
 DT = 0.1 * RADIUS / V_0        # Tijdstap om geen botsing te missen
-```
+
+#Je kan zien dat DT 0.1 keer de radios is gedeeld door V_0 dit betekent dat DT inderdaad klein genoeg is
+<!-- #endregion -->
 
 ### Particle class
 Ons `ParticleClass` definieert van een deeltje de massa $m$, snelheid $v$, positie $r$, en straal $R$. De positie moet per tijdstap bepaald worden. 
