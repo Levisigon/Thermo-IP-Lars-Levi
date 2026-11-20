@@ -96,15 +96,18 @@ Bekijk de waarde van `DT`. Hoe zorgt deze waaarde ervoor dat het onwaarschijnlij
 
 Onze simulatie modelleert dus een klein systeem zonder rekening te houden met de kracht tussen de luchtmoleculen. Je zult zien dat we toch al behoorlijk wat van de processor vragen om deze berekeningen te doen. Om een meer realistische modelsimulatie te maken is daarom een serieuze uitdaging, die veel wiskunde en programmeerervaring vraagt. Op dit ogenblik wordt dit bijvoorbeeld gevraagd bij een van de eerste opdrachten van het vak 'Computational Physics' van de master Applied Physics. 
 
-<!-- #region tags=["NB2_init"] editable=true slideshow={"slide_type": ""} -->
+```python tags=["NB2_init"] editable=true slideshow={"slide_type": ""}
 BOX_SIZE_0 = 10                # Hoogte en lengte startvolume
 N = 40                         # Aantal deeltjes
 V_0 = 1                        # Startsnelheid van deeltjes
 RADIUS = 0.3                   # Straal van moleculen
 DT = 0.1 * RADIUS / V_0        # Tijdstap om geen botsing te missen
 
-#Je kan zien dat DT 0.1 keer de radios is gedeeld door V_0 dit betekent dat DT inderdaad klein genoeg is
-<!-- #endregion -->
+# Je kan zien dat DT 0.1 keer de radios is gedeeld door V_0 dit betekent dat DT inderdaad klein genoeg is want als de snelheid van de
+# deeltjes groter worden dan wordt DT kleiner dit zorgt ervoor dat een botsing ondanks de grotere snelheid toch niet over het hoofd
+# gezien wordt. Bij de grotere radius wordt DT kleiner, dit is ook goed want bij een grotere radius is er een groter tijdslot waarop
+# een botsing geregistreerd kan worden. Dus als de Radius dan groter is kan je DT verkleinen om rekenkracht te besparen.
+```
 
 ### Particle class
 Ons `ParticleClass` definieert van een deeltje de massa $m$, snelheid $v$, positie $r$, en straal $R$. De positie moet per tijdstap bepaald worden. 
@@ -195,7 +198,7 @@ Leg uit dat d.m.v. onderstaande code de deeltjes allemaal dezelfde snelheid hebb
 
 ```{solution} ex-recap-5
 Jouw antwoord hier...
-### YOUR CODE HERE ###
+Er wordt een random uniforme waarde gekozen voor vx, dus de deeltjes hebben een verschillende snelheid in de x-component die tussen -V_0 en V0 ligt, de stelling van pythagoras zorgt ervoor dat vy zo wordt afgestemd dat vx^2 _vy^2 altijd v0 blijft. Dus hebben ze allemaal dezelfde snelheid ondanks de verschillende vx en vy. De uniforme functie van pos zorgt ervoor dat ze een random positie krijgen op de x en y-as die tussen -BOX_SIZE_0/2 + RADIUS en BOX_SIZE_0/2 - RADIUS zit. De functie genereert er twee dus willekeurige positie in x en y.
 ```
 
 ```python tags=["NB2_init"] editable=true slideshow={"slide_type": ""}
@@ -221,7 +224,7 @@ Leg uit hoe er in onderstaande code wordt voorkomen dat de botsing tussen twee d
 
 ```{solution} ex-recap-6
 Jouw antwoord hier...
-### YOUR CODE HERE ###
+In deze code wordt per deeltje die index i heeft, gekeken of hij botst met de deeltjes met index j. Bij de index i worden nog alle deeltjes getest, aangeduid met index j, behalve natuurlijk index i. Maar zodra dat gedaan is wordt er bij index i=2 alleen nog maar gecheckt vanaf j=3, dit voorkomt dat als deeltje 1 met 2 botst dat het niet nog een tweede keer geregistreerd wordt. De code slaat dan nu deeltje 1 over bij het checken voor botsingen van deeltje 2.
 ```
 
 ```python editable=true slideshow={"slide_type": ""} tags=["NB2_init"]
@@ -323,17 +326,32 @@ Voeg aan de simulatie een regel toe die voor elke tijdstap bepaalt wat de totale
 
 ```python tags=["NB2_ex7"]
 # plotten van kinetische energie als functie van tijd
-
+print(type(particles[0]))
+# print(particles[].kin_energy)
 particles = []
 energy_tot = []
 create_particles(particles)
 for i in range(100):
     take_time_step(particles)
-    # voeg de som van de kinetische energie in deze stap toe aan energy_tot 
-    ### YOUR CODE HERE ###
+    energy_tot_sim = 0
+    for particle in particles:
+        energy_tot_sim += particle.kin_energy
+    energy_tot = np.append(energy_tot, energy_tot_sim)
 
-# plot de figuur van de kinetische energie als functie van de tijd. 
-### YOUR CODE HERE ###
+# plot de figuur van de kinetische energie als functie van de tijd.
+
+t = np.arange(0, DT*100, DT)
+
+plt.figure()
+plt.plot(t, energy_tot, 'r-', label = "Kinetic Energy")
+# plt.ylim(19.999999999999994,20.00000000000004)
+plt.xlabel("$n$")
+plt.ylabel("$Energy_{tot} (J)$")
+plt.legend()
+plt.show()
+
+print(np.min(energy_tot))
+print(np.max(energy_tot))
 ```
 
 ```{exercise} 
@@ -342,8 +360,7 @@ Als je heel nauwkeurig naar de waarde voor de totale kinetische energie kijkt, d
 ```
 
 ```{solution} ex-recap-8
-Jouw antwoord hier...
-### YOUR CODE HERE ###
+Het varieert ongeveer op de 14e decimaal, dit is dus heel erg klein. Deze variatie kan verklaard worden doordat python kleine fouten maakt in afronding of iets in die richting. Hoewel dus de energie in theorie behouden zou moeten zijn vanwege het alleen voorkomen van elastische botsingen is er toch een héél kleine variatie in de totale kinetische energie.
 ```
 
 
@@ -375,6 +392,97 @@ Maak een script waarbij twee deeltjes met dezelfde (absolute) snelheid op een de
 - Voor wie een uitdaging wil: maak een grafiek met het aantal botsingen per tijdseenheid. Dit om bovenstaande benadering verder te verantwoorden.
 ```
 
+
+```{solution} ex-recap-9
+Deze code zorgt ervoor dat als er tijdens één tijdsstap een botsing plaats vindt dat een deeltje dan op een ignore_list komt zodat dat deeltje geen botsing meer aan kan gaan in dezelfde tijdstap. De for-loops voorkomen namelijk dat de particle_collision command gerund wordt als een van de deeltjes in een ignore_list staat.
+
+De code staat hieronder, de reden dat het een acceptabele benadering is omdat er heel veel botsingen in een veeldeeltjessysteem voorkomen. De botsingen die je hier eruit filtert zijn slechts een heel klein deel van het totaal aantal botsingen want het gebeurt niet zo snel dat drie deeltjes precies tegelijk botsen.
+
+```
+
+```python
+particles = []
+particles.append(ParticleClass(m=1.0, v=[2, 0], r=[-3,0], R=RADIUS))
+particles.append(ParticleClass(m=1.0, v=[-2, 0], r=[3,0], R=RADIUS))
+particles.append(ParticleClass(m=1.0, v=[0, 0], r=[0,0], R=RADIUS))
+
+class ParticleClass:
+    def __init__(self, m, v, r, R):
+        """ maakt een deeltje (constructor) """
+        self.m = m                         
+        self.v = np.array(v, dtype=float)  
+        self.r = np.array(r, dtype=float)  
+        self.R = R
+
+    def update_position(self):
+        """ verandert positie voor één tijdstap """
+        self.r += self.v * DT 
+            
+    @property
+    def momentum(self):
+        return self.m * self.v
+    
+    @property
+    def kin_energy(self):
+        return 1/2 * self.m * np.dot(self.v, self.v)
+
+
+def collide_detection(p1: ParticleClass, p2: ParticleClass) -> bool:
+    """ Geeft TRUE als de deeltjes overlappen """
+    dx = p1.r[0]-p2.r[0]
+    dy = p1.r[1]-p2.r[1]
+    rr = p1.R + p2.R
+    return  dx**2+dy**2 < rr**2 
+    #Note: np.linalg.norm(p1.r - p2.r) < (p1.R + p2.R) had ook gekund, maar is veel langzamer. Controleer zelf!
+
+def particle_collision(p1: ParticleClass, p2: ParticleClass):
+    """ past snelheden aan uitgaande van overlap """
+    m1, m2 = p1.m, p2.m
+    delta_r = p1.r - p2.r
+    delta_v = p1.v - p2.v
+    dot_product = np.dot(delta_r, delta_v)
+ # Als deeltjes van elkaar weg bewegen dan geen botsing
+    if dot_product >= 0: # '='-teken voorkomt ook problemen als delta_r == \vec{0}
+        return
+        
+    distance_squared = np.dot(delta_r, delta_r) 
+    # Botsing oplossen volgens elastische botsing in 2D
+    p1.v -= 2 * m2 / (m1 + m2) * dot_product / distance_squared * delta_r
+    p2.v += 2 * m1 / (m1 + m2) * dot_product / distance_squared * delta_r
+    
+def handle_collisions(particles):
+    ignore_list = []
+    for i, p1 in enumerate(particles):
+        if p1 in ignore_list:
+            continue
+        for j, p2 in enumerate(particles):
+            if p1 is p2:
+                continue                
+            if collide_detection(particles[i], particles[j]):
+                particle_collision(particles[i], particles[j])
+                ignore_list.append(p2)
+                ignore_list.append(p1)
+
+def take_time_step(particles):
+    for p in particles:
+        p.update_position()
+        
+    handle_collisions(particles)
+    handle_walls(particles) 
+
+def init():
+    dot.set_data([], [])
+    return dot,
+
+def update(frame):
+    take_time_step(particles)
+    dot.set_data([p.r[0] for p in particles], [p.r[1] for p in particles])
+    return dot,
+
+ani = FuncAnimation(fig, update, frames=100, init_func=init, blit=True, interval=50)
+HTML(ani.to_jshtml())
+
+```
 
 ````{tip} Nog sneller
 Er is een manier om je script nog sneller te maken. 
