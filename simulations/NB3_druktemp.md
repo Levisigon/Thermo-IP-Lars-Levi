@@ -221,12 +221,17 @@ Schrijf een functie die de temperatuur van het gas in onze simulatie bepaalt:
 ```
 
 ```python tags=["NB3_tempfun"]
+m_factor = 1e-27 #gebaseerd op ordegrootte van massa luchtdeeltje
+v_factor = 200 #verzonnen
+
 def temperature(particles) -> float:
     temp_total = 0.0 
     f = 2
     k = 1.380649e-23
     for particle in particles:
-        temp_total += particle.m*(particle.v[0]**2+particle.v[1]**2)/(f*k)
+        m = particle.m*m_factor
+        v = np.sqrt(particle.v[0]**2+particle.v[1]**2)*v_factor
+        temp_total += m*v**2/(f*k)
         temp = temp_total/len(particles)
     return temp
 ```
@@ -250,13 +255,12 @@ create_particles(particles)
 for i in range(100):
     take_time_step(particles)
     temperatures[i] = temperature(particles)
-    ### YOUR CODE HERE ###
-print(temperatures)
+    
 plt.figure()
-plt.xlabel('Time')
-plt.ylabel('Temperature')
-plt.plot(times, temperatures, 'k.
-### YOUR CODE HERE ###
+plt.xlabel('Time (s)')
+plt.ylabel('Temperature (K)')
+plt.plot(times, temperatures, 'k.', label="Temperatuur")
+plt.legend()
 plt.show()
 ```
 
@@ -331,6 +335,7 @@ def handle_walls(particles):
         left_right_collision(p)
         top_down_collision(p)
     pressure = (impulse_outward) / (4 * BOX_SIZE_0 * DT)  # omtrek volume is oppervlak (2D sim)
+    
 
 ```
 
@@ -352,7 +357,17 @@ pressures = np.zeros(100, dtype=float)
 times = np.linspace(1, 100, 100)
 
 ### YOUR CODE HERE ###
+def take_time_step(particles):
+    for p in particles:
+        p.update_position()
+    top_down_collision(particles)
+    left_right_collision(particles)
+    handle_walls(particles)
 
+for i in range(100):
+    take_time_step(particles)
+    pressures[i-1] = pressure
+    
 plt.figure()
 plt.xlabel('Time [step]')
 plt.ylabel('Pressure [a.u.]')
@@ -361,6 +376,12 @@ plt.plot(times, pressures, '-r')
 
 plt.show()
 
+def take_time_step(particles):
+    """ zet tijdstap voor een lijst deeltjes en verwerk alle botsingen onderling en met wanden """
+    for p in particles:
+        p.update_position()
+    handle_collisions(particles)
+    handle_walls(particles)  
 ```
 
 <!-- #region tags=[] -->
