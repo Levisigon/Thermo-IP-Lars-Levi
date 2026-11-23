@@ -547,6 +547,37 @@ print(f"Fully vectorized: Time taken for {repeats} dot products of length {L}: {
 ```
 
 
+```python
+import numpy as np
+import time
+
+L = 2                # lengte van de vector
+repeats = 1_000_000  # aantal herhalingen
+
+rnd_vec1 = np.random.rand(L, repeats)
+ 
+# test numpy dot product
+t0 = time.perf_counter()
+for vec1 in rnd_vec1.T:
+    dot = np.dot(vec1, vec1)
+t1 = time.perf_counter()
+
+print(f"Numpy: Time taken for {repeats} dot products of length {L}: {t1 - t0:.4f} seconds")
+
+# test no numpy dot product 
+t0 = time.perf_counter()
+for vec1 in rnd_vec1.T:
+    dot = vec1[0] * vec1[0] + vec1[1] * vec1[1] # + vec1[2] * vec1[2] + vec1[3] * vec1[3] # don't forget to adjust!
+t1 = time.perf_counter()
+
+print(f"No Numpy: Time taken for {repeats} dot products of length {L}: {t1 - t0:.4f} seconds")
+
+# test fully vectorized 
+t0 = time.perf_counter()
+dot = np.sum(rnd_vec1[0] * rnd_vec1[0] + rnd_vec1[1] * rnd_vec1[1])
+t1 = time.perf_counter()
+print(f"Fully vectorized: Time taken for {repeats} dot products of length {L}: {t1 - t0:.4f} seconds")
+```
 
 ## Brownian motion
 
@@ -627,6 +658,7 @@ for i in range(N-1):
     pos = Box_length_0*np.random.uniform(-1,1,2)
     particles.append(ParticleClass(m=1.0, v=[vx, vy], r = pos, R=.5,c='blue')) 
 
+#Aanmaken enkel stilstaand deeltje met m=20
 particles.append(ParticleClass(m=20.0, v=[0, 0], r = [0, 0], R=.5,c='red')) 
 
 ```
@@ -639,15 +671,16 @@ Voeg voor deze regel goede metadata toe.
 ```
 
 ```{solution} ex-brownian-1
-### YOUR CODE HERE ###
+In de laatste regel van het bovenstaande script wordt er een deeltje aangemaakt met 20x de massa van de andere deeltjes die stil staat in het midden van de box op coördinaat (0,0). 
 ```
 
-
+<!-- #raw -->
 Er is een doos vol met deeltjes op willekeurige positie aangemaakt.
 We willen kijken waar de deeltjes zijn terechtgekomen.
 Hieronder staat dit weergegeven. 
 
 
+<!-- #endraw -->
 
 ```python
 # Inspecteren van beginsituatie
@@ -662,9 +695,9 @@ plt.ylim(-Box_length_0,Box_length_0)
 
 for particle, particle_object in enumerate(particles):
     plt.plot(particle_object.r[0],particle_object.r[1],color=particle_object.c,marker='.')
-    # plt.arrow(particle_object.r[0],particle_object.r[1], 
-    #           particle_object.v[0],particle_object.v[1], 
-    #           head_width=0.05, head_length=0.1, color='red')
+    plt.arrow(particle_object.r[0],particle_object.r[1], 
+              particle_object.v[0],particle_object.v[1], 
+              head_width=0.05, head_length=0.1, color='red')
 plt.show()
 
 ```
@@ -678,7 +711,7 @@ Hoe wordt er voor gezorgd dat de snelheid van elk deeltje gelijk is?
 ```
 
 ```{solution} ex-brownian-2
-### YOUR CODE HERE ###
+De code bij de comment maakt voor elk deeltje een pijl aan die op zijn eigen positie bevindt en wijst in de richting van de snelheid met een zelf gekozen lengte, breedte en kleur van de pijl.
 ```
 
 We gaan nu de functies van de simulatie weer aanroepen:
@@ -762,6 +795,7 @@ from matplotlib.animation import FFMpegWriter
 # ---- tracking arrays ----
 track_x, track_y = [], []          # zwaar deeltje (bijv. particles[N-1])
 track_x2, track_y2 = [], []        # tweede deeltje (bijv. particles[0])
+track_x3, track_y3 = [], []
 botsingen = []
 
 # ---- figure setup ----
@@ -778,18 +812,20 @@ dots, = ax.plot([], [], 'ro', ms=18)
 # de twee deeltjes extra benadrukken
 heavy_dot, = ax.plot([], [], 'ko', ms=20)   # zwaar
 light_dot, = ax.plot([], [], 'bo', ms=18)   # tweede (blauw)
-
+light_dot_2, = ax.plot([], [], 'go', ms=18) # derde
 # ---- NIEUW: lijnen voor de paden ----
 heavy_path, = ax.plot([], [], 'k-', lw=1, alpha=0.8)
 light_path, = ax.plot([], [], 'b-', lw=1, alpha=0.8)
-
+light_path_2, = ax.plot([], [], 'g-', lw=1, alpha=0.8)
 def init():
     dots.set_data([], [])
     heavy_dot.set_data([], [])
     light_dot.set_data([], [])
+    light_dot_2.set_data([], [])
     heavy_path.set_data([], [])
     light_path.set_data([], [])
-    return dots, heavy_dot, light_dot, heavy_path, light_path
+    light_path_2.set_data([], [])
+    return dots, heavy_dot, light_dot, light_dot_2, heavy_path, light_path, light_path_2
 
 def update(frame):
     counter = 0
@@ -809,6 +845,9 @@ def update(frame):
     track_x2.append(particles[0].r[0])
     track_y2.append(particles[0].r[1])
 
+    track_x3.append(particles[1].r[0])
+    track_y3.append(particles[1].r[1])
+    
     # ---- update alle deeltjes ----
     xs = [p.r[0] for p in particles]
     ys = [p.r[1] for p in particles]
@@ -817,12 +856,13 @@ def update(frame):
     # ---- update de 2 highlights ----
     heavy_dot.set_data([track_x[-1]], [track_y[-1]])
     light_dot.set_data([track_x2[-1]], [track_y2[-1]])
-
+    light_dot_2.set_data([track_x2[-1]], [track_y2[-1]])
+    
     # ---- NIEUW: update de paden ----
     heavy_path.set_data(track_x, track_y)
     light_path.set_data(track_x2, track_y2)
-
-    return dots, heavy_dot, light_dot, heavy_path, light_path
+    light_path_2.set_data(track_x3, track_y3)
+    return dots, heavy_dot, light_dot, light_dot_2, heavy_path, light_path, light_path_2
 
 ani = FuncAnimation(fig, update, frames=400, init_func=init, blit=True, interval=50)
 HTML(ani.to_jshtml())
