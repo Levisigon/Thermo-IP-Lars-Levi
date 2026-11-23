@@ -718,6 +718,9 @@ We gaan nu de functies van de simulatie weer aanroepen:
 
 ```python
 # Het bepalen of er een botsing plaats vindt
+
+counter = 0
+counter_array = np.array([])
 def collide_detection(self, other):
     dx = self.r[0] - other.r[0]
     dy = self.r[1] - other.r[1]
@@ -741,14 +744,15 @@ def particle_collision(p1: ParticleClass, p2: ParticleClass):
     p2.v += 2 * m1 / (m1 + m2) * dot_product / distance_squared * delta_r
 
 def handle_collisions(particles):
-    ### YOUR CODE HERE ###
+    global counter
     """ alle onderlinge botsingen afhandelen voor deeltjes in lijst """
     num_particles = len(particles)
     for i in range(num_particles):
         for j in range(i+1, num_particles):
             if collide_detection(particles[i], particles[j]):
                 particle_collision(particles[i], particles[j])
-                ### YOUR CODE HERE ###
+                counter+=1
+                
 
 ```
 
@@ -773,7 +777,7 @@ for i in range(400):
     handle_collisions(particles)
 
     ### YOUR CODE HERE ###
-    
+    counter_array= np.append(counter_array, counter)
     track_x.append(particles[N-1].r[0])
     track_y.append(particles[N-1].r[1])
     
@@ -810,13 +814,15 @@ ax.set_aspect('equal')
 dots, = ax.plot([], [], 'ro', ms=18)
 
 # de twee deeltjes extra benadrukken
-heavy_dot, = ax.plot([], [], 'ko', ms=20)   # zwaar
-light_dot, = ax.plot([], [], 'bo', ms=18)   # tweede (blauw)
-light_dot_2, = ax.plot([], [], 'go', ms=18) # derde
+heavy_dot, = ax.plot([], [], 'ko', ms=20, label="heavy_dot")   # zwaar
+light_dot, = ax.plot([], [], 'bo', ms=18, label="light_dot_1")   # tweede (blauw)
+light_dot_2, = ax.plot([], [], 'go', ms=18, label="light_dot_2") # derde
 # ---- NIEUW: lijnen voor de paden ----
 heavy_path, = ax.plot([], [], 'k-', lw=1, alpha=0.8)
 light_path, = ax.plot([], [], 'b-', lw=1, alpha=0.8)
 light_path_2, = ax.plot([], [], 'g-', lw=1, alpha=0.8)
+ax.legend()
+
 def init():
     dots.set_data([], [])
     heavy_dot.set_data([], [])
@@ -828,8 +834,8 @@ def init():
     return dots, heavy_dot, light_dot, light_dot_2, heavy_path, light_path, light_path_2
 
 def update(frame):
-    counter = 0
-
+   
+    global counter
     for p in particles:
         p.update_position()
         p.boxcollision()
@@ -856,7 +862,7 @@ def update(frame):
     # ---- update de 2 highlights ----
     heavy_dot.set_data([track_x[-1]], [track_y[-1]])
     light_dot.set_data([track_x2[-1]], [track_y2[-1]])
-    light_dot_2.set_data([track_x2[-1]], [track_y2[-1]])
+    light_dot_2.set_data([track_x3[-1]], [track_y3[-1]])
     
     # ---- NIEUW: update de paden ----
     heavy_path.set_data(track_x, track_y)
@@ -887,7 +893,9 @@ ani.save("deeltjes.gif", writer="pillow", fps=20)
 ```
 
 ```{solution} ex-brownian-3
-### YOUR CODE HERE ###
+Je ziet dat het zware deeltje een stuk minder beweegt over de gehele simulatie vergeleken met de twee lichte deeltjes, maar dat is vrij logisch aangezien die een stuk minder snelheid krijgt uit de botsingen die hij maakt met de lichtere deeltjes. En dus is de gemiddelde snelheid van het zwaardere deeltje lager dan die van de lichtere deeltjes en zullen de lichtere deeltjes dus een langere weg afleggen.
+
+Je ziet als je de simulatie een paar keer runt dat je allemaal verschillende resultaten krijgt dus dat het vantevoren niet vast ligt wat de afgelegde afstand van de deeltjes gaat zijn. Dit is logisch aangezien ze een random beginsnelheid toegewezen krijgen. De ene keer verplaatsen ze heel erg veel en de andere keer maar heel weinig en blijven ze veelal op hun eigen plek.
 ```
 
 
@@ -901,7 +909,16 @@ Plot hieronder het aantal botsingen als functie van de tijd.
 ```
 
 ```python
-### YOUR CODE HERE ###
+
+
+x_test = np.arange(0, len(counter_array), 1)
+
+plt.figure()
+plt.plot(x_test, counter_array, 'r-',label="aantal botsingen")
+plt.xlabel("t")
+plt.ylabel("aantal botsingen")
+plt.legend()
+plt.plot()
 ```
 
 ```{warning} 🌶 Let op!
