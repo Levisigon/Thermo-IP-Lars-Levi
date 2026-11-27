@@ -165,6 +165,11 @@ Maak een alternatieve vorm van de functie `create_particles` die alle deeltjes e
 def create_uniform_particles(particles):
     """ Leegmaken en opnieuw aanmaken van deeltjes met uniforme snelheid in lijst """
     particles.clear()
+    for i in range(N):
+        vx = 0
+        vy = np.random.choice([-1,1])*V_0
+        pos = np.random.uniform(-BOX_SIZE_0/2+RADIUS, BOX_SIZE_0/2-RADIUS,2)
+        particles.append(ParticleClass(m=1.0, v=[vx,vy], r = pos, R=RADIUS))
     ### YOUR CODE HERE ###
 ```
 
@@ -175,12 +180,69 @@ Creëer `N` deeltjes met deze functie en plot hiervan de kinetische energie in d
 ```
 
 ```python tags=["NB4_numsteps"]
-# Jouw antwoord
+class ParticleClass:
+    def __init__(self, m, v, r, R):
+        """ maakt een deeltje (constructor) """
+        self.m = m                         
+        self.v = np.array(v, dtype=float)  
+        self.r = np.array(r, dtype=float)  
+        self.R = R
 
-#def calculate_num_steps():
-#    return ...
+    def update_position(self):
+        """ verandert positie voor één tijdstap """
+        self.r += self.v * DT 
+            
+    @property
+    def momentum(self):
+        return self.m * self.v
+    
+    @property
+    def kin_energy(self):
+        return 1/2 * self.m * np.dot(self.v, self.v)
 
-### YOUR CODE HERE ###
+    @property
+    def kin_energy_x(self):
+        return 1/2 * self.m * self.v[0]**2
+
+    @property
+    def kin_energy_y(self):
+        return 1/2 * self.m * self.v[1]**2
+
+create_uniform_particles(particles)
+
+def calculate_num_steps():
+   return 2*BOX_SIZE_0/(V_0*DT)
+
+Kin_array_x = np.zeros(int(calculate_num_steps()))
+Kin_array_y = np.zeros(int(calculate_num_steps()))
+
+def take_time_steps():
+    Kin_energy_total_x = 0
+    Kin_energy_total_y = 0
+    for p in particles:
+        p.update_position()
+        Kin_energy_total_x += p.kin_energy_x
+        Kin_energy_total_y += p.kin_energy_y
+    handle_collisions(particles)
+    handle_walls(particles)
+    Kin_array_x[i] = Kin_energy_total_x
+    Kin_array_y[i] = Kin_energy_total_y
+
+for i in range(int(calculate_num_steps())):
+    take_time_steps()
+
+stappen = int(calculate_num_steps())
+
+tijdstappen = np.linspace(1, stappen, stappen)
+plt.figure()
+plt.plot(tijdstappen, Kin_array_x, 'k.', label="Kinetic Energy in x direction")
+plt.plot(tijdstappen, Kin_array_y, 'r.', label="Kinetic Energy in y direction")
+plt.xlabel("Tijd (stap)")
+plt.ylabel("KE")
+plt.legend()
+plt.show()
+
+## YOUR CODE HERE ###
 ```
 
 <!-- #region tags=[] -->
