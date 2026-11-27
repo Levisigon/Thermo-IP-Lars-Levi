@@ -221,16 +221,15 @@ Schrijf een functie die de temperatuur van het gas in onze simulatie bepaalt:
 ```
 
 ```python tags=["NB3_tempfun"]
-m_factor = 1e-27 #gebaseerd op ordegrootte van massa luchtdeeltje
-v_factor = 200 #verzonnen
+
 
 def temperature(particles) -> float:
     temp_total = 0.0 
     f = 2
     k = 1.380649e-23
     for particle in particles:
-        m = particle.m*m_factor
-        v = np.sqrt(particle.v[0]**2+particle.v[1]**2)*v_factor
+        m = particle.m
+        v = np.sqrt(particle.v[0]**2+particle.v[1]**2)
         temp_total += m*v**2/(f*k)
         temp = temp_total/len(particles)
     return temp
@@ -275,7 +274,39 @@ In een vorige module heb je de vermenigvuldigingsfactoren en eenheden bij de con
 <!-- #endregion -->
 
 ```python
+m_factor = 1e-27 #gebaseerd op ordegrootte van massa luchtdeeltje
+v_factor = 200
+L_factor = 5e-10
+t_factor = L_factor/v_factor
 
+def temperature(particles) -> float:
+    temp_total = 0.0 
+    f = 2
+    k = 1.380649e-23
+    for particle in particles:
+        m = particle.m*m_factor
+        v = np.sqrt(particle.v[0]**2+particle.v[1]**2)*v_factor
+        temp_total += m*v**2/(f*k)
+        temp = temp_total/len(particles)
+    return temp
+
+particles = []
+temperatures = np.zeros(100, dtype=float)
+times = np.linspace(1, 100, 100)
+
+tijd = times*DT*t_factor
+
+create_particles(particles)
+for i in range(100):
+    take_time_step(particles)
+    temperatures[i] = temperature(particles)
+    
+plt.figure()
+plt.xlabel('Time (s)')
+plt.ylabel('Temperature (K) ')
+plt.plot(tijd, temperatures, 'k.', label="Temperatuur")
+plt.legend()
+plt.show()
 ```
 
 ## Druk
@@ -578,7 +609,24 @@ Herleid dezelfde formule af voor het driedimensionale geval. Laat zien welke rel
 
 ```{solution} ex-druktemp9b
 Geef hier de relatie tussen de constanten...
-### YOUR CODE HERE ###
+De impulsverandering per botsing is:
+$$ \Delta p = 2mv_x $$
+
+$\Delta t$ tussen botsing met dezelfde want is ongeveer $2l/v_x$
+
+We weten dat $F = \Delta p/ \Delta t $ dus $F = \frac{2mv_x}{2l/v_x}$. A is in dit geval gelijk aan $l^2$
+
+Dus $P=F/A = \frac{m{v_x}^2}{l^3}$
+
+
+Als we dan nu sommeren over alle deeltjes krijgen we $P = \frac{Nm}{V}\cdot {v_x}^2$
+
+We kunnen stellen dat $v^2 = {v_x}^2+{v_y}^2+{v_x}^2$ en dat dus ${v_x}^2 = 1/3v^2$
+
+Dus...
+$PV = \frac{Nmv^2}{3}$
+
+Uit de gegeven formule  $\frac{f}{2}kT=\frac{1}{2}m\left<v^2\right>$ volgt dan dat $PV = NkT$ met het aantal vrijheidsgraden f gelijk aan 3.
 ```
 
 
