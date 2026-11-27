@@ -257,8 +257,8 @@ for i in range(100):
     temperatures[i] = temperature(particles)
     
 plt.figure()
-plt.xlabel('Time (s)')
-plt.ylabel('Temperature (K)')
+plt.xlabel('Time (tijdstap)')
+plt.ylabel('Temperature ')
 plt.plot(times, temperatures, 'k.', label="Temperatuur")
 plt.legend()
 plt.show()
@@ -273,6 +273,10 @@ In een vorige module heb je de vermenigvuldigingsfactoren en eenheden bij de con
 - Breid de berekening uit, zodat de eenheden kloppen bij het model dat we probeerden weer te geven.
 ```
 <!-- #endregion -->
+
+```python
+
+```
 
 ## Druk
 
@@ -351,22 +355,25 @@ Wat zou je als verklaring hiervoor geven?
 
 <!-- #endregion -->
 
+De code geeft nu alleen een pressure als er een deeltje tegen een muur aan botst, er zullen dus veel tijdstippen zijn waarbij er geen deeltje tegen de muur botst en is dus de pressure 0. Als er dan wel een deeltje botst dan krijg je piek. Daarom is de grafiek veel punten op 0 en dan een hoop pieken.
+
 ```python tags=["NB3_plot_pres"]
 particles = []
 pressures = np.zeros(100, dtype=float)
 times = np.linspace(1, 100, 100)
 
-### YOUR CODE HERE ###
+create_particles(particles)
+
 def take_time_step(particles):
     for p in particles:
         p.update_position()
-    top_down_collision(particles)
-    left_right_collision(particles)
     handle_walls(particles)
+    
+i=0
 
 for i in range(100):
     take_time_step(particles)
-    pressures[i-1] = pressure
+    pressures[i] = pressure
     
 plt.figure()
 plt.xlabel('Time [step]')
@@ -376,12 +383,7 @@ plt.plot(times, pressures, '-r')
 
 plt.show()
 
-def take_time_step(particles):
-    """ zet tijdstap voor een lijst deeltjes en verwerk alle botsingen onderling en met wanden """
-    for p in particles:
-        p.update_position()
-    handle_collisions(particles)
-    handle_walls(particles)  
+
 ```
 
 <!-- #region tags=[] -->
@@ -401,7 +403,37 @@ Zet je initiële waarden weer terug.
 <!-- #endregion -->
 
 ```python tags=[]
-### YOUR CODE HERE ###
+N = 400
+BOX_SIZE_0 = 30
+
+particles = []
+pressures = np.zeros(100, dtype=float)
+times = np.linspace(1, 100, 100)
+
+create_particles(particles)
+
+def take_time_step(particles):
+    for p in particles:
+        p.update_position()
+    handle_walls(particles)
+    
+i=0
+
+for i in range(100):
+    take_time_step(particles)
+    pressures[i] = pressure
+    
+plt.figure()
+plt.xlabel('Time [step]')
+plt.ylabel('Pressure [a.u.]')
+
+plt.plot(times, pressures, '-r')
+
+plt.show()
+
+
+N=40
+BOX_SIZE_0 = 10
 
 ```
 
@@ -449,7 +481,26 @@ pressures = np.zeros(N_steps, dtype=float)
 times = np.linspace(1, N_steps, N_steps)
 
 create_particles(particles)
+pressure = 0
 
+def take_time_step(particles):
+    for p in particles:
+        p.update_position()
+    handle_walls(particles)
+    
+i=0
+
+for i in range(N_steps):
+    take_time_step(particles)
+    pressures[i] = pressure
+    
+plt.figure()
+plt.xlabel('Time [step]')
+plt.ylabel('Pressure [a.u.]')
+
+plt.plot(times, pressures, '-r')
+
+plt.show()
 ### YOUR CODE HERE ###
 
 ```
@@ -462,7 +513,7 @@ We kunnen de gevonden druk nu wel uitdrukken in SI-eenheden met behulp van de vo
 ```
 
 ```{solution} ex-druktemp-7
-### YOUR CODE HERE ###
+Dit kan komen doordat de factoren voor v en m misschien niet goed genoeg geschat zijn. Ook hebben we veel minder deeltjes dan er normaal in een fietsband zitten dus is het niet echt een realistische vergelijking. Ook is deze simulatie in 2D gedaan en niet in 3D. Het simuleren in 3D zal ongetwijfeld andere resultaten opleveren.
 ```
 
 
@@ -474,7 +525,7 @@ Leg op basis van de vormen die je ziet en de bijbehorende wiskunde uit dat dit e
 ```
 
 ```{solution} ex-druktemp-8
-### YOUR CODE HERE ###
+Bij elke meting geeft de opdracht nu een gemiddelde van de druk over alle metingen ipv de druk op één meting, hierbij zorgt de alpha ervoor dat er een gewogen gemiddelde ontstaat waarbij de nieuwste metingen het meeste invloed hebben op de druk op dat moment. Door de alpha in de exponent tellen de oudere waardes exponentieel minder mee.
 ```
 
 
@@ -504,7 +555,16 @@ Controleer of je uitkomst overeenkomt met de theorie en verifieer hiermee de cod
 ```
 
 ```python
-### YOUR CODE HERE ###
+m=1 #gehaald uit create_particles
+A=BOX_SIZE_0**2
+v = 1 #Uit v0 =1 uit de allereerste cell
+pressure_theory = m*N*v**2/(A*2)
+print("De theoretische waarde voor de druk is:", pressure_theory)
+
+pressure = np.mean(pressures)
+print("De daadwerkelijke waarde voor de simulatie van de druk is:", pressure)
+
+#De waardes komen nauwgenoeg overeen dus is de code geverifieerd
 ```
 
 In [de formule voor de tweedimensionale druk](2d_pressure) kan je de structuur van de ideale gaswet herkennen. 
